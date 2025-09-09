@@ -1,107 +1,116 @@
 #include <iostream>
-#include <unordered_map>
-#include <vector>
-#include <string>
-#include <sstream>
 #include <fstream>
-#include <algorithm>
-#include <cmath>
+#include <sstream>
+#include <string>
+#include <map>
+#include <vector>
+#include <stdexcept>
 
-namespace yearofthecow {
-    const std::vector<std::string> ANIMALS = {
-        "Ox", "Tiger", "Rabbit", "Dragon", "Snake", "Horse",
-        "Goat", "Monkey", "Rooster", "Dog", "Pig", "Rat"
-    };
-
-    long long age_difference(
-        const std::string& parent,
-        const std::string& child,
-        long long direction,
-        const std::unordered_map<std::string, std::string>& animal_map
-    ) {
-        auto parent_animal = animal_map.at(parent);
-        auto child_animal = animal_map.at(child);
-
-        long long starting_index = std::find(ANIMALS.begin(), ANIMALS.end(), parent_animal) - ANIMALS.begin();
-        long long destination_index = std::find(ANIMALS.begin(), ANIMALS.end(), child_animal) - ANIMALS.begin();
-
-        long long shift = direction;
-        long long animals_len = static_cast<long long>(ANIMALS.size());
-
-        while (((starting_index + shift) % animals_len + animals_len) % animals_len != destination_index) {
-            shift += direction;
-        }
-
-        return shift;
-    }
-
-    void dfs(
-        const std::unordered_map<std::string, std::string>& animal_map,
-        std::unordered_map<std::string, long long>& ages,
-        const std::unordered_map<std::string, std::vector<std::pair<long long, std::string>>>& tree,
-        const std::string& start
-    ) {
-        long long starting_age_delta = ages[start];
-
-        auto tree_it = tree.find(start);
-        if (tree_it != tree.end()) {
-            for (const auto& [direction, child] : tree_it->second) {
-                ages[child] = starting_age_delta + age_difference(start, child, direction, animal_map);
-                dfs(animal_map, ages, tree, child);
-            }
-        }
-    }
-
-    int alternative_solve(std::istream& input, std::ostream& output) {
+class NotLast {
+public:
+    static void solve(std::istream& input, std::ostream& output) {
         std::string line;
+
+        // Read first line (number of entries) - equivalent to let _: usize = ...
         std::getline(input, line);
         int n = std::stoi(line);
 
-        std::unordered_map<std::string, long long> ages = {{"Bessie", 0}};
-        std::unordered_map<std::string, std::string> animals = {{"Bessie", "Ox"}};
+        // Build milk_volumes map - equivalent to the Rust BTreeMap fold operation
+        std::map<std::string, int> milk_volumes;
 
         while (std::getline(input, line)) {
             std::istringstream iss(line);
-            std::vector<std::string> tokens;
-            std::string token;
+            std::string name;
+            int volume;
+            iss >> name >> volume;
 
-            while (iss >> token) {
-                tokens.push_back(token);
+            // Equivalent to acc.entry(name).and_modify(|v| *v += volume).or_insert(volume)
+            if (milk_volumes.find(name) != milk_volumes.end()) {
+                milk_volumes[name] += volume;
+            } else {
+                milk_volumes[name] = volume;
             }
-
-            std::string child = tokens[0];
-            std::string parent = tokens.back();
-            animals[child] = tokens[4];
-
-            long long direction = (tokens[3] == "next") ? 1 : -1;
-            long long starting_age_delta = ages[parent];
-
-            ages[child] = starting_age_delta + age_difference(parent, child, direction, animals);
         }
 
-        output << std::abs(ages["Elsie"]) << std::endl;
-        return 0;
+        // Check if all 7 cows are producing
+        bool all_cows_producing = milk_volumes.size() == 7;
+
+        // Create volume_mapping - equivalent to the second fold operation
+        std::map<int, std::vector<std::string>> volume_mapping;
+
+        for (const auto& pair : milk_volumes) {
+            const std::string& name = pair.first;
+            int volume = pair.second;
+
+            // Equivalent to acc.entry(volume).and_modify(...).or_insert(...)
+            if (volume_mapping.find(volume) != volume_mapping.end()) {
+                volume_mapping[volume].push_back(name);
+            } else {
+                volume_mapping[volume] = std::vector<std::string>{name};
+            }
+        }
+
+        // Get maybe_second_last_producers - equivalent to the nth() logic returning Option
+        std::map<int, std::vector<std::string>>::iterator maybe_second_last_producers;
+        bool has_valid_result = false;
+
+        if (all_cows_producing) {
+            // Equivalent to volume_mapping.iter().nth(1)
+            auto it = volume_mapping.begin();
+            if (volume_mapping.size() > 1) {
+                ++it; // Move to second element (index 1)
+                maybe_second_last_producers = it;
+                has_valid_result = true;
+            }
+        } else {
+            // Equivalent to volume_mapping.iter().nth(0)
+            if (!volume_mapping.empty()) {
+                maybe_second_last_producers = volume_mapping.begin();
+                has_valid_result = true;
+            }
+        }
+
+        // Output - equivalent to the write_fmt format_args logic with Option handling
+        if (!has_valid_result || maybe_second_last_producers->second.size() > 1) {
+            output << "Tie\n";
+        } else {
+            output << maybe_second_last_producers->second[0] << "\n";
+        }
     }
 
-    int solve(std::istream& input, std::ostream& output) {
-        return alternative_solve(input, output);
-    }
+    static void run_problem() {
+        const std::string input_source = "notlast.in";
+        const std::string output_source = "notlast.out";
 
-    void run_problem() {
-        std::string input_source = "stdin";
-        std::string output_source = "stdout";
+        // Setup input stream
+        std::istream* input_ptr = &std::cin;
+        std::ifstream input_file;
 
         if (input_source != "stdin") {
-            std::ifstream input_file(input_source);
-            std::ofstream output_file(output_source);
-            solve(input_file, output_file);
-        } else {
-            solve(std::cin, std::cout);
+            input_file.open(input_source);
+            if (!input_file) {
+                throw std::runtime_error("Failed to open input file");
+            }
+            input_ptr = &input_file;
         }
+
+        // Setup output stream
+        std::ostream* output_ptr = &std::cout;
+        std::ofstream output_file;
+
+        if (output_source != "stdout") {
+            output_file.open(output_source);
+            if (!output_file) {
+                throw std::runtime_error("Failed to create output file");
+            }
+            output_ptr = &output_file;
+        }
+
+        solve(*input_ptr, *output_ptr);
     }
-}
+};
 
 int main() {
-    yearofthecow::run_problem();
+    NotLast::run_problem();
     return 0;
 }

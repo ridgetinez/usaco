@@ -5,6 +5,7 @@ pub mod kayak;
 pub mod permutator;
 
 // Maps and Sets
+pub mod notlast;
 pub mod sumtwovalues;
 pub mod tttt;
 pub mod whereami;
