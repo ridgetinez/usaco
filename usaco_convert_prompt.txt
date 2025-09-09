@@ -1,0 +1,1 @@
+Mechanistically convert this Rust program to C++. Ensure the logic within the solve method is preserved.
