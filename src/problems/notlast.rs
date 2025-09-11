@@ -5,6 +5,8 @@ use std::{
 
 use cp_macros::competitive_problem;
 
+const NUM_MILK_COWS: usize = 7;
+
 #[competitive_problem(input = "notlast.in", output = "notlast.out")]
 fn solve(input: Box<dyn BufRead>, mut output: Box<dyn Write>) -> io::Result<()> {
     let mut lines = input.lines();
@@ -22,20 +24,18 @@ fn solve(input: Box<dyn BufRead>, mut output: Box<dyn Write>) -> io::Result<()> 
             acc
         });
 
-    let all_cows_producing = milk_volumes.keys().count() == 7;
+    let all_cows_producing = milk_volumes.keys().count() == NUM_MILK_COWS;
 
     let volume_mapping = milk_volumes
         .into_iter()
         .map(|(name, volume)| (volume, name))
-        .fold(BTreeMap::new(), |mut acc, (volume, name)| {
-            acc.entry(volume)
-                // shoddy clone happens below that doesn't need to happen.
-                .and_modify(|names: &mut Vec<String>| names.push(name.clone()))
-                .or_insert(Vec::from([name]));
-            acc
-        });
-
-    // println!("{:?}", volume_mapping);
+        .fold(
+            BTreeMap::<usize, Vec<String>>::new(),
+            |mut acc, (volume, name)| {
+                acc.entry(volume).or_default().push(name);
+                acc
+            },
+        );
 
     let maybe_second_last_producers = if all_cows_producing {
         volume_mapping.iter().nth(1)
