@@ -3,29 +3,27 @@ pub mod citystate {
     fn solve(input: Box<dyn BufRead>, mut output: Box<dyn Write>) -> io::Result<()> {
         let mut lines = input.lines();
         let _: usize = lines.next().unwrap()?.parse().unwrap();
-        let (n_special_state_pairs, _) = lines
-            .fold(
-                (0, HashMap::<String, HashMap<String, usize>>::new()),
-                |(found_count, mut acc), line| {
-                    let [city, state_code] = line
-                        .unwrap()
-                        .split_whitespace()
-                        .map(|s| s.to_string())
-                        .collect::<Vec<String>>()
-                        .try_into()
-                        .unwrap();
-                    (
-                        found_count
-                            + n_special_state_pairs_made(
-                                &mut acc,
-                                state_code,
-                                city[..2].to_string(),
-                            ),
-                        acc,
-                    )
-                },
-            );
-        _ = output.write_fmt(format_args!("{0}\n", n_special_state_pairs));
+        let mut pairs: Vec<(String, String)> = Vec::new();
+        let mut occurrences: HashMap<(String, String), usize> = HashMap::new();
+        for line in lines.map(|maybe_line| maybe_line.unwrap()) {
+            let [city, state_code] = line
+                .split(' ')
+                .collect::<Vec<&str>>()
+                .try_into()
+                .unwrap();
+            let city_code = city[..2].to_string();
+            *occurrences
+                .entry((state_code.to_string(), city_code.to_string()))
+                .or_default() += 1;
+            pairs.push((state_code.to_string(), city_code));
+        }
+        let special_pair_count = pairs
+            .into_iter()
+            .map(|(state_code, city_code)| {
+                n_special_state_pairs_made(&occurrences, state_code, city_code)
+            })
+            .sum::<usize>() / 2;
+        _ = output.write_fmt(format_args!("{0}\n", special_pair_count));
         Ok(())
     }
     pub fn run_problem() {
@@ -45,26 +43,19 @@ pub mod citystate {
         solve(reader, writer).unwrap();
     }
     fn n_special_state_pairs_made(
-        state_to_city_codes: &mut HashMap<String, HashMap<String, usize>>,
+        state_to_city_codes: &HashMap<(String, String), usize>,
         state_code: String,
         city_code: String,
     ) -> usize {
-        let a = state_to_city_codes
-            .get(&city_code)
-            .map(|m| m.get(&state_code).map(|count| *count).unwrap_or(0))
-            .unwrap_or(0);
-        let b = if state_code == city_code {
-            state_to_city_codes
-                .get(&state_code)
-                .map(|m| m.get(&city_code).map(|count| *count).unwrap_or(0))
-                .unwrap_or(0)
+        if state_code != city_code {
+            let found = state_to_city_codes
+                .get(&(city_code, state_code))
+                .unwrap_or(&0)
+                .clone();
+            found
         } else {
             0
-        };
-        let npairs_made = a - b;
-        *state_to_city_codes.entry(state_code).or_default().entry(city_code).or_default()
-            += 1;
-        npairs_made
+        }
     }
 }
 
