@@ -1,7 +1,6 @@
 use std::{
     collections::HashMap,
     io::{self, BufRead, Write},
-    ops::Rem,
 };
 
 use cp_macros::competitive_problem;
@@ -68,24 +67,6 @@ fn age_difference(
     // }
 }
 
-fn dfs(
-    animal_map: &HashMap<String, String>,
-    ages: &mut HashMap<String, i64>,
-    tree: &HashMap<String, Vec<(i64, String)>>,
-    start: String,
-) {
-    // println!("'{}'", start);
-    let starting_age_delta: i64 = ages.get(&start).unwrap().clone();
-
-    for (direction, child) in tree.get(&start).unwrap_or(&Vec::new()) {
-        ages.insert(
-            child.clone(),
-            starting_age_delta
-                + age_difference(start.clone(), child.clone(), *direction, animal_map),
-        );
-        dfs(animal_map, ages, tree, child.clone())
-    }
-}
 
 fn alternative_solve(input: Box<dyn BufRead>, mut output: Box<dyn Write>) -> io::Result<()> {
     let mut lines = input.lines();
@@ -115,7 +96,7 @@ fn alternative_solve(input: Box<dyn BufRead>, mut output: Box<dyn Write>) -> io:
 }
 
 #[competitive_problem(input = "stdin", output = "stdout")]
-fn solve(input: Box<dyn BufRead>, mut output: Box<dyn Write>) -> io::Result<()> {
+fn solve(input: Box<dyn BufRead>, output: Box<dyn Write>) -> io::Result<()> {
     alternative_solve(input, output)
     // let mut lines = input.lines();
     // let _: usize = lines.next().unwrap()?.parse().unwrap();

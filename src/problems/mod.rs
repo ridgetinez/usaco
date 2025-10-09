@@ -1,3 +1,6 @@
+// Utilities (not exposed in lib API)
+pub mod util;
+
 // Sorting
 pub mod angry;
 pub mod cowuniversity;

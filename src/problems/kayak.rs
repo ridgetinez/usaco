@@ -1,20 +1,8 @@
-use std::{
-    io::{self, BufRead, Write},
-    str::FromStr,
-};
+use std::io::{self, BufRead, Write};
 
 use cp_macros::competitive_problem;
 
-fn parse_line<T: FromStr + Default>(
-    lines: &mut impl Iterator<Item = io::Result<String>>,
-) -> io::Result<Vec<T>> {
-    Ok(lines
-        .next()
-        .unwrap()?
-        .split_whitespace()
-        .map(|s| s.parse().unwrap_or_default())
-        .collect::<Vec<T>>())
-}
+use crate::problems::util::parsing::parse_line;
 
 // Assumed weights are sorted
 fn calculate_instability(weights: &[usize]) -> usize {
