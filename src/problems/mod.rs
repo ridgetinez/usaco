@@ -14,3 +14,6 @@ pub mod sumtwovalues;
 pub mod tttt;
 pub mod whereami;
 pub mod yearofthecow;
+
+// Cases
+pub mod threelogos;

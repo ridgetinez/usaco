@@ -9,5 +9,5 @@ fn main() {
         &dest_path,
         format!("use challenges::problems::{}::run_problem;\n", env::var_os("PROBLEM").unwrap().to_str().unwrap())
     ).unwrap();
-    println!("cargo::rerun-if-changed=build.rs");
+    // println!("cargo::rerun-if-changed=build.rs");
 }
