@@ -9,6 +9,7 @@ pub mod permutator;
 
 // Maps and Sets
 pub mod citystate;
+pub mod jurymarks;
 pub mod notlast;
 pub mod sumtwovalues;
 pub mod tttt;
