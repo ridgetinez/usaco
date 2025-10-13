@@ -17,4 +17,9 @@ pub mod whereami;
 pub mod yearofthecow;
 
 // Cases
+pub mod minusone;
+pub mod paint;
 pub mod threelogos;
+
+// Greedy
+pub mod breedflip;
