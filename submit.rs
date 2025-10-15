@@ -13,34 +13,58 @@ pub mod util {
             )
         }
     }
+    pub mod printing {
+        pub fn print_grid<T: std::fmt::Debug>(grid: &Vec<Vec<T>>) {
+            grid.iter()
+                .for_each(|row| {
+                    ::std::io::_print(format_args!("{0:?}\n", row));
+                });
+        }
+    }
 }
-pub mod breedflip {
+pub mod evenmoreodd {
     use std::io::{self, BufRead, Write};
+    use super::util::parsing::parse_line;
     fn solve(input: Box<dyn BufRead>, mut output: Box<dyn Write>) -> io::Result<()> {
         let mut lines = input.lines();
-        _ = lines.next();
-        let original = lines.next().unwrap()?;
-        let mutated = lines.next().unwrap()?;
-        let mut nflips = 0;
-        let mut ndifferent = 0;
-        for (co, cm) in original.chars().zip(mutated.chars()) {
-            if co == cm && ndifferent > 0 {
-                nflips += 1;
-                ndifferent = 0;
-            } else if co != cm {
-                ndifferent += 1
-            }
+        let _ = lines.next();
+        let ids: Vec<usize> = parse_line(&mut lines)?;
+        let (evens, odds): (Vec<usize>, Vec<usize>) = ids
+            .into_iter()
+            .partition(|n| n % 2 == 0);
+        let (nevens, nodds) = (evens.len(), odds.len());
+        if nevens >= nodds {
+            _ = output
+                .write_fmt(
+                    format_args!(
+                        "{0}\n",
+                        (2 * nodds) + if nevens > nodds { 1 } else { 0 },
+                    ),
+                );
+        } else {
+            let remaining_odds = nodds - nevens;
+            _ = output
+                .write_fmt(
+                    format_args!(
+                        "{0}\n",
+                        2 * nevens
+                            + match remaining_odds % 3 {
+                                0 => 2 * (remaining_odds / 3),
+                                1 => 2 * (remaining_odds / 3) - 1,
+                                2 => 2 * (remaining_odds / 3) + 1,
+                                _ => {
+                                    ::core::panicking::panic_fmt(format_args!("wtf"));
+                                }
+                            },
+                    ),
+                );
         }
-        if ndifferent > 0 {
-            nflips += 1;
-        }
-        output.write_fmt(format_args!("{0}\n", nflips));
         Ok(())
     }
     pub fn run_problem() {
         use std::{fs::File, io::{self, BufRead, BufReader, Write}};
-        let input_source = "breedflip.in";
-        let output_source = "breedflip.out";
+        let input_source = "stdin";
+        let output_source = "stdout";
         let mut reader: Box<dyn BufRead> = Box::new(io::stdin().lock());
         if input_source != "stdin" {
             let f = File::open(input_source).unwrap();
@@ -56,6 +80,6 @@ pub mod breedflip {
 }
 
 fn main() {
-    breedflip::run_problem();
+    evenmoreodd::run_problem();
 }
 

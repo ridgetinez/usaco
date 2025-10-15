@@ -3,83 +3,108 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include <optional>
+#include <algorithm>
 
 namespace util {
     namespace parsing {
         template<typename T>
         std::vector<T> parse_line(std::istream& input) {
-            std::string line;
-            std::getline(input, line);
-            std::istringstream iss(line);
             std::vector<T> result;
-            T value;
-            while (iss >> value) {
-                result.push_back(value);
+            std::string line;
+            if (std::getline(input, line)) {
+                std::istringstream iss(line);
+                T value;
+                while (iss >> value) {
+                    result.push_back(value);
+                }
             }
             return result;
         }
     }
+
+    namespace printing {
+        template<typename T>
+        void print_grid(const std::vector<std::vector<T>>& grid) {
+            for (const auto& row : grid) {
+                for (const auto& elem : row) {
+                    std::cout << elem << " ";
+                }
+                std::cout << "\n";
+            }
+        }
+    }
 }
 
-namespace breedflip {
+namespace evenmoreodd {
     void solve(std::istream& input, std::ostream& output) {
         std::string line;
         std::getline(input, line); // Skip first line
 
-        std::string original;
-        std::getline(input, original);
+        std::vector<size_t> ids = util::parsing::parse_line<size_t>(input);
 
-        std::string mutated;
-        std::getline(input, mutated);
+        std::vector<size_t> evens;
+        std::vector<size_t> odds;
 
-        int nflips = 0;
-        int ndifferent = 0;
-
-        for (size_t i = 0; i < original.length() && i < mutated.length(); ++i) {
-            char co = original[i];
-            char cm = mutated[i];
-
-            if (co == cm && ndifferent > 0) {
-                nflips += 1;
-                ndifferent = 0;
-            } else if (co != cm) {
-                ndifferent += 1;
+        for (size_t n : ids) {
+            if (n % 2 == 0) {
+                evens.push_back(n);
+            } else {
+                odds.push_back(n);
             }
         }
 
-        if (ndifferent > 0) {
-            nflips += 1;
-        }
+        size_t nevens = evens.size();
+        size_t nodds = odds.size();
 
-        output << nflips << "\n";
+        if (nevens >= nodds) {
+            output << (2 * nodds) + (nevens > nodds ? 1 : 0) << "\n";
+        } else {
+            size_t remaining_odds = nodds - nevens;
+            size_t result = 2 * nevens;
+
+            switch (remaining_odds % 3) {
+                case 0:
+                    result += 2 * (remaining_odds / 3);
+                    break;
+                case 1:
+                    result += 2 * (remaining_odds / 3) - 1;
+                    break;
+                case 2:
+                    result += 2 * (remaining_odds / 3) + 1;
+                    break;
+                default:
+                    throw std::runtime_error("wtf");
+            }
+
+            output << result << "\n";
+        }
     }
 
     void run_problem() {
-        const std::string input_source = "breedflip.in";
-        const std::string output_source = "breedflip.out";
+        const char* input_source = "stdin";
+        const char* output_source = "stdout";
 
-        std::istream* input_ptr = &std::cin;
+        std::istream* input = &std::cin;
+        std::ostream* output = &std::cout;
+
         std::ifstream input_file;
-
-        if (input_source != "stdin") {
-            input_file.open(input_source);
-            input_ptr = &input_file;
-        }
-
-        std::ostream* output_ptr = &std::cout;
         std::ofstream output_file;
 
-        if (output_source != "stdout") {
-            output_file.open(output_source);
-            output_ptr = &output_file;
+        if (std::string(input_source) != "stdin") {
+            input_file.open(input_source);
+            input = &input_file;
         }
 
-        solve(*input_ptr, *output_ptr);
+        if (std::string(output_source) != "stdout") {
+            output_file.open(output_source);
+            output = &output_file;
+        }
+
+        solve(*input, *output);
     }
 }
 
 int main() {
-    breedflip::run_problem();
+    evenmoreodd::run_problem();
     return 0;
 }

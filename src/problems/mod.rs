@@ -23,3 +23,6 @@ pub mod threelogos;
 
 // Greedy
 pub mod breedflip;
+pub mod cowtip;
+pub mod evenmoreodd;
+pub mod watchingmooloo;
