@@ -22,49 +22,37 @@ pub mod util {
         }
     }
 }
-pub mod evenmoreodd {
-    use std::io::{self, BufRead, Write};
-    use super::util::parsing::parse_line;
+pub mod outofplace {
+    use std::{
+        io::{self, BufRead, Write},
+        mem::swap,
+    };
     fn solve(input: Box<dyn BufRead>, mut output: Box<dyn Write>) -> io::Result<()> {
         let mut lines = input.lines();
-        let _ = lines.next();
-        let ids: Vec<usize> = parse_line(&mut lines)?;
-        let (evens, odds): (Vec<usize>, Vec<usize>) = ids
-            .into_iter()
-            .partition(|n| n % 2 == 0);
-        let (nevens, nodds) = (evens.len(), odds.len());
-        if nevens >= nodds {
-            _ = output
-                .write_fmt(
-                    format_args!(
-                        "{0}\n",
-                        (2 * nodds) + if nevens > nodds { 1 } else { 0 },
-                    ),
-                );
-        } else {
-            let remaining_odds = nodds - nevens;
-            _ = output
-                .write_fmt(
-                    format_args!(
-                        "{0}\n",
-                        2 * nevens
-                            + match remaining_odds % 3 {
-                                0 => 2 * (remaining_odds / 3),
-                                1 => 2 * (remaining_odds / 3) - 1,
-                                2 => 2 * (remaining_odds / 3) + 1,
-                                _ => {
-                                    ::core::panicking::panic_fmt(format_args!("wtf"));
-                                }
-                            },
-                    ),
-                );
+        _ = lines.next();
+        let mut heights: Vec<usize> = lines
+            .map(|maybe_line| maybe_line.unwrap().parse().unwrap())
+            .collect();
+        let mut nswaps = 0;
+        for i in (0..heights.len()).rev() {
+            let mut swap_index = i;
+            for j in (0..i).rev() {
+                if heights[i] != heights[j] && heights[j] >= heights[swap_index] {
+                    swap_index = j;
+                }
+            }
+            if swap_index != i {
+                heights.swap(i, swap_index);
+                nswaps += 1;
+            }
         }
+        _ = output.write_fmt(format_args!("{0}\n", nswaps));
         Ok(())
     }
     pub fn run_problem() {
         use std::{fs::File, io::{self, BufRead, BufReader, Write}};
-        let input_source = "stdin";
-        let output_source = "stdout";
+        let input_source = "outofplace.in";
+        let output_source = "outofplace.out";
         let mut reader: Box<dyn BufRead> = Box::new(io::stdin().lock());
         if input_source != "stdin" {
             let f = File::open(input_source).unwrap();
@@ -80,6 +68,6 @@ pub mod evenmoreodd {
 }
 
 fn main() {
-    evenmoreodd::run_problem();
+    outofplace::run_problem();
 }
 

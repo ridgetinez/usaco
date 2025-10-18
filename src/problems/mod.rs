@@ -25,4 +25,5 @@ pub mod threelogos;
 pub mod breedflip;
 pub mod cowtip;
 pub mod evenmoreodd;
+pub mod outofplace;
 pub mod watchingmooloo;
