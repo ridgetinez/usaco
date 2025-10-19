@@ -35,13 +35,11 @@ pub mod outofplace {
             .collect();
         let mut nswaps = 0;
         for i in (0..heights.len()).rev() {
-            let mut swap_index = i;
-            for j in (0..i).rev() {
-                if heights[i] != heights[j] && heights[j] >= heights[swap_index] {
-                    swap_index = j;
-                }
-            }
-            if swap_index != i {
+            if let Some(swap_index) = (0..i)
+                .rev()
+                .max_by_key(|&j| heights[j])
+                .filter(|&j| heights[i] < heights[j])
+            {
                 heights.swap(i, swap_index);
                 nswaps += 1;
             }

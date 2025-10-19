@@ -15,16 +15,11 @@ fn solve(input: Box<dyn BufRead>, mut output: Box<dyn Write>) -> io::Result<()> 
     // Build the solution right to left, finding the left-most maximum inversion to swap each round.
     let mut nswaps = 0;
     for i in (0..heights.len()).rev() {
-        let mut swap_index = i;
-        // TODO(amartinez): Can use rposition to find the index to swap.
-        for j in (0..i).rev() {
-            // Check that we're not swapping identical heights, otherwise
-            // take the left most _different from heights[i]_ height.
-            if heights[i] != heights[j] && heights[j] >= heights[swap_index] {
-                swap_index = j
-            }
-        }
-        if swap_index != i {
+        if let Some(swap_index) = (0..i)
+            .rev()
+            .max_by_key(|&j| heights[j])
+            .filter(|&j| heights[i] < heights[j])
+        {
             // println!("swapping {} and {}", i, swap_index);
             heights.swap(i, swap_index);
             nswaps += 1;

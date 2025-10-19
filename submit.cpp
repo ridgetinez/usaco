@@ -11,8 +11,8 @@ namespace util {
         std::vector<T> parse_line(std::istream& input) {
             std::string line;
             std::getline(input, line);
-            std::vector<T> result;
             std::istringstream iss(line);
+            std::vector<T> result;
             T value;
             while (iss >> value) {
                 result.push_back(value);
@@ -39,7 +39,7 @@ namespace util {
 namespace outofplace {
     void solve(std::istream& input, std::ostream& output) {
         std::string line;
-        std::getline(input, line); // Skip first line
+        std::getline(input, line); // Read and discard first line
 
         std::vector<size_t> heights;
         while (std::getline(input, line)) {
@@ -48,15 +48,20 @@ namespace outofplace {
 
         int nswaps = 0;
         for (int i = heights.size() - 1; i >= 0; --i) {
-            int swap_index = i;
+            // Find max element in range [0, i)
+            int swap_index = -1;
+            size_t max_val = 0;
             for (int j = i - 1; j >= 0; --j) {
-                if (heights[i] != heights[j] && heights[j] >= heights[swap_index]) {
+                if (heights[j] >= max_val) {
+                    max_val = heights[j];
                     swap_index = j;
                 }
             }
-            if (swap_index != i) {
+
+            // Only swap if we found an element greater than heights[i]
+            if (swap_index != -1 && heights[i] < heights[swap_index]) {
                 std::swap(heights[i], heights[swap_index]);
-                nswaps += 1;
+                nswaps++;
             }
         }
 
@@ -67,23 +72,21 @@ namespace outofplace {
         const std::string input_source = "outofplace.in";
         const std::string output_source = "outofplace.out";
 
-        std::istream* input_ptr = &std::cin;
+        std::istream* input = &std::cin;
         std::ifstream input_file;
-
         if (input_source != "stdin") {
             input_file.open(input_source);
-            input_ptr = &input_file;
+            input = &input_file;
         }
 
-        std::ostream* output_ptr = &std::cout;
+        std::ostream* output = &std::cout;
         std::ofstream output_file;
-
         if (output_source != "stdout") {
             output_file.open(output_source);
-            output_ptr = &output_file;
+            output = &output_file;
         }
 
-        solve(*input_ptr, *output_ptr);
+        solve(*input, *output);
     }
 }
 
